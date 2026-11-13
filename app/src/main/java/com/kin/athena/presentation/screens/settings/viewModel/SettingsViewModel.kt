@@ -107,14 +107,9 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    // ===== 已改 ===== 直接放行，不弹购买框
     fun startBilling(item: String, onSuccess: () -> Unit) {
-        if (settings.value.premiumUnlocked) {
-            Logger.info("Premium already unlocked, calling onSuccess")
-            onSuccess()
-        } else {
-            billingProvider.getBillingInterface()?.showPurchaseDialog(item, onSuccess)
-                ?: Logger.error("BillingInterface not available - activity not set")
-        }
+        onSuccess()
     }
 
     fun getProductPrice(productId: String): String? {
@@ -193,11 +188,12 @@ class SettingsViewModel @Inject constructor(
         defaultRoute = _settings.value.defaultRoute
     }
 
+    // ===== 已改 ===== 加载后强制解锁
     private suspend fun loadSettings() {
         val result = preferenceUseCases.loadSettings.execute()
         result.fold(
             ifSuccess = { loadedSettings ->
-                _settings.value = loadedSettings
+                _settings.value = loadedSettings.copy(premiumUnlocked = true)
                 defaultRoute = loadedSettings.defaultRoute
             }
         )
@@ -305,12 +301,14 @@ class SettingsViewModel @Inject constructor(
         return LocaleListCompat.forLanguageTags(tagsList.joinToString(","))
     }
     
+    // ===== 已改 ===== 直接返回 true
     suspend fun isPremiumFeatureEnabled(featureKey: String): Boolean {
-        return settings.value.premiumUnlocked
+        return true
     }
 
+    // ===== 已改 ===== 直接返回 true
     suspend fun validatePremiumStatus(): Boolean {
-        return settings.value.premiumUnlocked
+        return true
     }
 
     fun isProductOwned(productId: String): Boolean {
